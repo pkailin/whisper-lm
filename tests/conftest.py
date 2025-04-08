@@ -112,100 +112,81 @@ def fixture_normalizer():
     return BasicTextNormalizer(remove_diacritics=True)
 
 
-@pytest.fixture(name="ds", scope="session")
-def fixture_ds():
+@pytest.fixture(name="example_name", scope="session")
+def fixture_example_name():
     """
-    Load the audio dataset, ensuring the correct sample rate.
+    Provide a name for selecting a specific audio example.
 
-    Returns:
-        Dataset:
-            A `datasets.Dataset` object with all audio samples resampled to
-            16 kHz for consistency.
+    Returns
+    -------
+    str
+        The name of the example.
     """
-    ds = load_dataset("openslr", "SLR76", split="train", trust_remote_code=True)
-    first_example = ds[0]["audio"]
-    if first_example["sampling_rate"] != 16_000:
-        logging.info(
-            "Resampling audio: %d -> %d", first_example["sampling_rate"], 16_000
-        )
-        ds = ds.cast_column("audio", Audio(sampling_rate=16_000))
-    return ds
-
-
-@pytest.fixture(name="example_index", scope="session")
-def fixture_example_index():
-    """
-    Provide an index for selecting a specific audio example from the dataset.
-
-    Returns:
-        int:
-            Index of the audio example used to demonstrate or test model
-            performance.
-    """
-    return 28
+    return "euf_07973_00797482883"
 
 
 @pytest.fixture(name="audio_path", scope="session")
-def fixture_audio_path(ds, example_index):
+def fixture_audio_path(example_name):
     """
-    Load and provide the audio path from the dataset at the specified index.
+    Load and provide the path of an audio example.
 
     Parameters
     ----------
-    ds : Dataset
-        The dataset loaded by the `ds` fixture.
-    example_index : int
-        The index provided by the `example_index` fixture.
+    example_name : str
+        The audio example name to use.
 
     Returns
     -------
     str
         The audio file path.
     """
-    return ds[example_index]["audio"]["path"]
+    audio_path = os.path.join(
+        os.path.dirname(__file__),
+        "fixtures", f"{example_name}.wav",
+    )
+    return audio_path
 
 
 @pytest.fixture(name="audio_array", scope="session")
-def fixture_audio_array(ds, example_index):
+def fixture_audio_array(audio_path):
     """
-    Load and provide the audio array from the dataset at the specified index.
+    Load and provide the audio array of an audio example.
 
     Parameters
     ----------
-    ds : Dataset
-        The dataset loaded by the `ds` fixture.
-    example_index : int
-        The index provided by the `example_index` fixture.
+    audio_path : str
+        The path of the audio file.
 
     Returns
     -------
     np.ndarray
         The audio array for the specified example.
     """
-    audio_path = ds[example_index]["audio"]["path"]
-    if os.path.exists(audio_path):
-        return load_audio(audio_path)
-    return ds[example_index]["audio"]["array"]
+    return load_audio(audio_path)
 
 
 @pytest.fixture(name="text_ref", scope="session")
-def fixture_text_ref(ds, example_index):
+def fixture_text_ref(example_name):
     """
     Provide the reference transcription for the specified audio example.
 
     Parameters
     ----------
-    ds : Dataset
-        The dataset loaded by the `ds` fixture.
-    example_index : int
-        The index provided by the `example_index` fixture.
+    example_name : str
+        The audio example name to use.
 
     Returns
     -------
     str
         The reference transcription for the audio example.
     """
-    return ds[example_index]["sentence"]
+    txt_path = os.path.join(
+        os.path.dirname(__file__),
+        "fixtures", f"{example_name}.txt",
+    )
+    with open(txt_path, "r", encoding="utf8") as handle:
+        text = handle.read().strip()
+    return text
 
 
 # Mock model and dataset to use across tests
