@@ -1,6 +1,7 @@
 datasets==3.1.0
 jiwer==3.1.0
-kenlm @ https://github.com/kpu/kenlm/archive/35f145839eca742f2402716d17542fd0546efc9d.zip#sha256=8fa6723b5c99e8230167d83a2857f595b6c34dd2cd872a3d55194b80f36416c2
+# kenlm @ https://github.com/kpu/kenlm/archive/35f145839eca742f2402716d17542fd0546efc9d.zip#sha256=8fa6723b5c99e8230167d83a2857f595b6c34dd2cd872a3d55194b80f36416c2
+kenlm @ https://github.com/kpu/kenlm/archive/master.zip
 librosa==0.11.0
 numpy==1.24.4
 openai_whisper==20231117
