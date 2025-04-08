@@ -147,7 +147,8 @@ def test_main_integration(cli_args):
         mock_model.transcribe.return_value = {"text": "predicted text"}
         mock_model.decode.return_value = [MagicMock(text="decoded text")]
         mock_model.dims.n_mels = 80
-        mock_model.device = torch.device("cuda")
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        mock_model.device = torch.device(device)
         mock_asr_dataset.return_value = [("/path/to/audio.wav", "text")]
         mock_evaluate.return_value = (defaultdict(list), ["text"], ["predicted text"])
 
