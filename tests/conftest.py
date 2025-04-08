@@ -197,7 +197,8 @@ def fixture_mock_model():
     model.transcribe.return_value = {"text": "predicted text"}
     model.decode.return_value = [MagicMock(text="decoded text")]
     model.dims.n_mels = 80
-    model.device = torch.device("cuda")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.device = torch.device(device)
     return model
 
 
