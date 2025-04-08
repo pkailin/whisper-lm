@@ -6,4 +6,5 @@ flake8==7.1.2
 isort==5.13.2
 pydocstringformatter==0.7.3
 pylint==3.2.7
+pytest==8.3.5
 ruff==0.11.0
