@@ -29,7 +29,7 @@ OpenAI model path: zuazo-whisper-medium-eu.pt
 >>> from whisper_decoder_with_lm import LMOptions
 
 >>> # Select an audio file:
->>> audio_path = "tests/data/common_voice_eu_18591439.mp3"
+>>> audio_path = "tests/fixtures/common_voice_eu_18591439.mp3"
 
 >>> # Set original Whisper transcription options:
 >>> decode_options = {
