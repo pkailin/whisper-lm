@@ -157,7 +157,7 @@ ruff:
 # Perform security checks on Python files using bandit:
 bandit:
 	@echo "Checking bandit..."
-	bandit src/
+	bandit .
 	@echo
 
 # Remove unused imports from Python files using autoflake:
