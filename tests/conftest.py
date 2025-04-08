@@ -142,7 +142,8 @@ def fixture_audio_path(example_name):
     """
     audio_path = os.path.join(
         os.path.dirname(__file__),
-        "fixtures", f"{example_name}.wav",
+        "fixtures",
+        f"{example_name}.wav",
     )
     return audio_path
 
@@ -182,7 +183,8 @@ def fixture_text_ref(example_name):
     """
     txt_path = os.path.join(
         os.path.dirname(__file__),
-        "fixtures", f"{example_name}.txt",
+        "fixtures",
+        f"{example_name}.txt",
     )
     with open(txt_path, "r", encoding="utf8") as handle:
         text = handle.read().strip()
