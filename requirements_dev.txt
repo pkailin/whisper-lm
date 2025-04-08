@@ -4,7 +4,9 @@ black==24.8.0
 blacken-docs==1.18.0
 flake8==7.1.2
 isort==5.13.2
+nbqa==1.9.0
 pydocstringformatter==0.7.3
+pydocstyle==6.3.0
 pylint==3.2.7
 pytest==8.3.5
 ruff==0.11.0
