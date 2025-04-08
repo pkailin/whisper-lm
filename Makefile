@@ -1,4 +1,4 @@
-.PHONY: all test test_req black nb_black isort nb_isort pylint nb_pylint flake8 nb_flake8 autopep8 pydocstyle nb_pydocstyle ruff bandit autoflake pydocstringformatter style nb_style doctest kenlm kenlm_reduced lm lm_reduced
+.PHONY: all test test_req black nb_black isort nb_isort pylint nb_pylint flake8 nb_flake8 autopep8 pydocstyle nb_pydocstyle ruff bandit autoflake pydocstringformatter style nb_style doctest kenlm kenlm_reduced lm lm_reduced install install-dev
 
 # Targets to create help running the tests and create the language model.
 #
@@ -186,14 +186,15 @@ doctest: test_req
 
 # Install package for production use:
 install:
-	@echo "Installing package..."
-	pip install .
+	@echo "Installing required packages..."
+	pip install -U openai_whisper==20230918
+	pip install -r requirements.txt
 	@echo
 
 # Install package for development use
-install-dev:
-	@echo "Installing package..."
-	pip install -e .[dev]
+install-dev: install
+	@echo "Installing required dev package..."
+	pip install -r requirements_dev.txt
 	@echo
 
 # Create corpus files:
