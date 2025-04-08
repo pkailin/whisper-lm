@@ -187,14 +187,15 @@ doctest: test_req
 # Install package for production use:
 install:
 	@echo "Installing required packages..."
-	pip install -U openai_whisper==20230918
-	pip install -r requirements.txt
+	python -m pip install --upgrade pip
+	python -m pip install -U openai_whisper==20230918
+	python -m pip install -r requirements.txt
 	@echo
 
 # Install package for development use
 install-dev: install
 	@echo "Installing required dev package..."
-	pip install -r requirements_dev.txt
+	python -m pip install -r requirements_dev.txt
 	@echo
 
 # Create corpus files:
