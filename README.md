@@ -1,5 +1,8 @@
 # Whisper-LM: Improving ASR Models with Language Models for Low-Resource Languages
 
+[![arXiv - Paper](https://img.shields.io/badge/cs.CL-2503.23542-b31b1b?&logo=arxiv&logoColor=red)](https://arxiv.org/abs/2503.23542)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 Welcome to the repository for "Whisper-LM," an extension to OpenAI's Whisper
 models that integrates n-gram and large language models (LM) to enhance
 automatic speech recognition (ASR) performance, particularly for low-resource
