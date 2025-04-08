@@ -62,7 +62,7 @@ test_req: zuazo-whisper-tiny-eu.pt zuazo-whisper-medium-eu.pt
 	# This replaces the 5gram-$(LLANG).bin target during tests
 	@echo "Downloading LM..."
 	if [ ! -e 5gram-eu.bin ]; then \
-	    wget -O 5gram-eu.bin https://aholab.ehu.eus/~xzuazo/models/Basque%20LMs/5gram.bin ; \
+	    wget -q -O 5gram-eu.bin https://aholab.ehu.eus/~xzuazo/models/Basque%20LMs/5gram.bin ; \
 	fi
 
 # Run all style checks and tests:
