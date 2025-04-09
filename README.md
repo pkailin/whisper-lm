@@ -64,14 +64,14 @@ wget -O 5gram-eu.bin https://aholab.ehu.eus/~xzuazo/models/Basque%20LMs/5gram.bi
 This is step is only needed if you want to use a model in Hugging Face format.
 It needs to be converted back to the OpenAI format before using it here.
 
-For example, to use the fine-tuned Medium size Whisper model from
-[zuazo/whisper-medium-eu](https://huggingface.co/zuazo/whisper-medium-eu), we
+For example, to use the fine-tuned Tiny size Whisper model from
+[zuazo/whisper-tiny-eu](https://huggingface.co/zuazo/whisper-tiny-eu), we
 convert it to Open AI format:
 
 ```shell
 ./convert_hf_to_openai.py \
-    --checkpoint zuazo/whisper-medium-eu \
-    --whisper_dump_path zuazo-whisper-medium-eu.pt
+    --checkpoint zuazo/whisper-tiny-eu \
+    --whisper_dump_path zuazo-whisper-tiny-eu.pt
 ```
 
 ### Transcription Example
@@ -102,11 +102,11 @@ Finally, to perform a simple transcription using the converted model and an LM:
 >>> LMOptions().lm_beta = 0.68825565
 
 >>> # Load the model and transcribe the audio:
->>> model = whisper.load_model("zuazo-whisper-medium-eu.pt")
+>>> model = whisper.load_model("zuazo-whisper-tiny-eu.pt")
 >>> result = model.transcribe(audio_path, **transcribe_options)
 
 >>> result["text"]
-'Non demontre dago langraizoka eta non bolikosta.'
+'Non-demontre dago langarizoka eta non bolikosta?'
 
 ```
 
