@@ -2,6 +2,7 @@
 
 [![arXiv - Paper](https://img.shields.io/badge/cs.CL-2503.23542-b31b1b?&logo=arxiv&logoColor=red)](https://arxiv.org/abs/2503.23542)
 [![Hugging Face Implementation](https://img.shields.io/badge/Code-🤗HuggingFace-yellow.svg)](https://github.com/hitz-zentroa/whisper-lm-transformers)
+[![Build](https://github.com/hitz-zentroa/whisper-lm/actions/workflows/python-app.yml/badge.svg)](https://github.com/hitz-zentroa/whisper-lm/actions)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Welcome to the repository for "Whisper-LM," an extension to OpenAI's Whisper
