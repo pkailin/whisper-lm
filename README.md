@@ -85,7 +85,7 @@ Finally, to perform a simple transcription using the converted model and an LM:
 >>> from whisper_decoder_with_lm import LMOptions
 
 >>> # Select an audio file:
->>> audio_path = "tests/fixtures/common_voice_eu_18591439.mp3"
+>>> audio_path = "tests/fixtures/euf_07973_00797482883.mp3"
 
 >>> # Set original Whisper transcription options (this is important):
 >>> decode_options = {
@@ -106,7 +106,7 @@ Finally, to perform a simple transcription using the converted model and an LM:
 >>> result = model.transcribe(audio_path, **transcribe_options)
 
 >>> result["text"]
-'Non-demontre dago langarizoka eta non bolikosta?'
+'Talka diskoetxearekin grabatzen ditut beti, abestien maketak.'
 
 ```
 
