@@ -290,8 +290,13 @@ def test_get_dtype_and_options(mock_model):
     transcribe_options = {"fp16": True, "temperature": (0)}
     dtype, updated_options = get_dtype_and_options(mock_model, transcribe_options)
 
-    assert dtype == torch.float16
-    assert updated_options["fp16"] is True
+    print("Device:", mock_model.device)
+    if mock_model.device == torch.device("cuda"):
+        assert dtype == torch.float16
+        assert updated_options["fp16"] is True
+    else:  # FP16 is not supported on CPU
+        assert dtype == torch.float32
+        assert updated_options["fp16"] is False
 
     transcribe_options = {"fp16": False, "temperature": (0)}
     dtype, updated_options = get_dtype_and_options(mock_model, transcribe_options)
