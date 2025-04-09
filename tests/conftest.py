@@ -143,7 +143,7 @@ def fixture_audio_path(example_name):
     audio_path = os.path.join(
         os.path.dirname(__file__),
         "fixtures",
-        f"{example_name}.wav",
+        f"{example_name}.mp3",
     )
     return audio_path
 
