@@ -51,14 +51,8 @@ zuazo-whisper-tiny-eu.pt:
 	    --checkpoint zuazo/whisper-tiny-eu \
 	    --whisper_dump_path zuazo-whisper-tiny-eu.pt
 
-zuazo-whisper-medium-eu.pt:
-	@echo "Downloading Whisper Medium Model..."
-	./convert_hf_to_openai.py \
-	    --checkpoint zuazo/whisper-medium-eu \
-	    --whisper_dump_path zuazo-whisper-medium-eu.pt
-
 # Prepare environment for testing by downloading necessary models and LMs:
-test_req: zuazo-whisper-tiny-eu.pt zuazo-whisper-medium-eu.pt
+test_req: zuazo-whisper-tiny-eu.pt
 	# This replaces the 5gram-$(LLANG).bin target during tests
 	@echo "Downloading LM..."
 	if [ ! -e 5gram-eu.bin ]; then \
