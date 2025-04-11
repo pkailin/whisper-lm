@@ -4,6 +4,7 @@
 [![Hugging Face Implementation](https://img.shields.io/badge/Code-🤗HuggingFace-yellow.svg)](https://github.com/hitz-zentroa/whisper-lm-transformers)
 [![Build](https://github.com/hitz-zentroa/whisper-lm/actions/workflows/python-app.yml/badge.svg)](https://github.com/hitz-zentroa/whisper-lm/actions)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![HiTZ](https://img.shields.io/badge/HiTZ-Basque%20Center%20for%20Language%20Technology-blueviolet)](http://www.hitz.eus/)
 
 Welcome to the repository for "Whisper-LM," an extension to OpenAI's Whisper
 models that integrates n-gram and large language models (LM) to enhance
