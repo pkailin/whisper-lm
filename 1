@@ -47,7 +47,7 @@ from whisper_evaluate import (
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 import torch
 import torchaudio
-import librosa
+
 
 class ASRDataset(Dataset):
     """Simple ASR dataset class to work with generic audio datasets.
@@ -470,7 +470,7 @@ def evaluate_with_transcribe(model, dataset, transcribe_options, normalizer=None
     Returns
     -------
     tuple :
-    - sentence_measures : dict
+    - entence_measures : dict
         A dictionary containing lists of computed sentence-level measures
         (e.g., CER, WER) across all examples in the dataset.
     - label_texts : list
@@ -498,7 +498,7 @@ def evaluate_with_transcribe(model, dataset, transcribe_options, normalizer=None
         predicted_text = model.transcribe(audio_path, **transcribe_options)[
             "text"
         ]  # noqa: E501
-         
+
         # Normalize text if required:
         if normalizer is not None:
             label_text = normalizer(label_text).strip()
@@ -608,12 +608,15 @@ def main():
     # Load the STT model:
     logging.info("Loading model: %s", args.model)
     model = whisper.load_model(args.model)
-    #model = WhisperForConditionalGeneration.from_pretrained("balaji1312/whisper-small-myst-fullfinetune")
-
-    #print(model.keys())           # should include 'dims' and 'model_state_dict'
-    #print(model['dims'])          # see model architecture
-    #print(list(model['model_state_dict'].keys())[:10])  # list of weight names
+    print(model.keys())           # should include 'dims' and 'model_state_dict'
+    print(model['dims'])          # see model architecture
+    print(list(model['model_state_dict'].keys())[:10])  # list of weight names
     
+    # Load processor & model
+    #model_id = "balaji1312/whisper-small-myst-fullfinetune"
+    #processor = WhisperProcessor.from_pretrained(model_id)
+    #model = WhisperForConditionalGeneration.from_pretrained(model_id)
+
     # Parse transcription and LM options:
     transcribe_options = parse_transcribe_options(args)
     set_lm_options(args)
