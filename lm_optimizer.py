@@ -56,6 +56,120 @@ from whisper_evaluate import (
     tuple_type,
 )
 
+import os
+import logging
+from torch.utils.data import Dataset
+
+def load_custom_dataset(wav_scp_path, text_path, shuffle=True, n_samples=None):
+    """Load a custom dataset from wav.scp and text files.
+
+    Parameters
+    ----------
+    wav_scp_path : str
+        Path to wav.scp file with format "<utterance-id> <path to .wav file>"
+    text_path : str
+        Path to text file with format "<utterance-id> <transcription>"
+    shuffle : bool
+        Whether to shuffle the dataset examples
+    n_samples : int or None
+        Number of samples to take (None means all samples)
+
+    Returns
+    -------
+    list
+        List of dictionaries with keys 'audio' and 'sentence'
+    """
+    logging.info(f"Loading wav.scp from: {wav_scp_path}")
+    logging.info(f"Loading text from: {text_path}")
+
+    # Read wav.scp file
+    utterance_to_wav = {}
+    with open(wav_scp_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            parts = line.strip().split(' ', 1)
+            if len(parts) == 2:
+                utterance_id, wav_path = parts
+                utterance_to_wav[utterance_id] = wav_path
+
+    # Read text file
+    utterance_to_text = {}
+    with open(text_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            parts = line.strip().split(' ', 1)
+            if len(parts) == 2:
+                utterance_id, transcription = parts
+                utterance_to_text[utterance_id] = transcription
+
+    # Create dataset
+    dataset = []
+    common_keys = set(utterance_to_wav.keys()).intersection(set(utterance_to_text.keys()))
+    logging.info(f"Found {len(common_keys)} utterances in both files")
+
+    for utterance_id in common_keys:
+        dataset.append({
+            'audio': {'path': utterance_to_wav[utterance_id]},
+            'sentence': utterance_to_text[utterance_id]
+        })
+
+    # Shuffle if requested
+    if shuffle:
+        import random
+        random.seed(42)
+        random.shuffle(dataset)
+
+    # Limit samples if requested
+    if n_samples is not None and n_samples < len(dataset):
+        dataset = dataset[:n_samples]
+        logging.info(f"Sampled {n_samples} utterances from the dataset")
+
+    return dataset
+
+class CustomWhisperDataset(Dataset):
+    """Custom dataset for Whisper model using wav.scp and text files."""
+
+    def __init__(self, dataset, n_mels=80, dtype=None, device=None):
+        """Initialize the dataset.
+
+        Parameters
+        ----------
+        dataset : list
+            List of dictionaries with keys 'audio' and 'sentence'
+        n_mels : int
+            Number of mel spectrogram bins
+        dtype : torch.dtype
+            Data type for tensors
+        device : torch.device
+            Device to use for tensors
+        """
+        self.dataset = dataset
+        self.n_mels = n_mels
+        self.dtype = dtype
+        self.device = device
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        import whisper
+
+        example = self.dataset[idx]
+        audio_path = example['audio']['path']
+        text = example['sentence']
+
+        # Load and process audio using Whisper's audio loading function
+        mel = whisper.log_mel_spectrogram(
+            whisper.load_audio(audio_path),
+            n_mels=self.n_mels
+        )
+
+        if self.dtype is not None:
+            mel = mel.to(dtype=self.dtype)
+
+        if self.device is not None:
+            mel = mel.to(device=self.device)
+
+        return mel, text
+
 
 def objective_with_transcribe(  # pylint: disable=too-many-locals,too-many-arguments
     trial,
@@ -146,9 +260,15 @@ def objective_with_transcribe(  # pylint: disable=too-many-locals,too-many-argum
     predictions = []
     logging.debug("Starting main optimization loop.")
     for step, example in enumerate(dataset):
-        # Transcribe the example:
-        label_text = example["sentence"]
-        audio = str(example["audio"]["path"])
+        
+        if isinstance(example, dict):
+            # This is either HuggingFace dataset or our custom format 
+            label_text = example["sentence"]
+            audio = str(example["audio"]["path"])
+        else:
+            # If dataset is already in a custom format
+            audio, label_text = example
+        
         predicted_text = model.transcribe(audio, **transcribe_options)["text"]
         # Compute the score:
         if not skip_normalize:
@@ -257,10 +377,17 @@ def objective_with_decode(  # pylint: disable=too-many-locals,too-many-arguments
     dtype, transcribe_options = get_dtype_and_options(model, transcribe_options)
     decode_options = whisper.DecodingOptions(**transcribe_options)
 
-    # Load the dataset
-    whisper_dataset = WhisperDataset(
-        dataset, "path", "sentence", model.dims.n_mels, dtype=dtype, device=model.device
-    )
+
+    # Load the dataset - support both HuggingFace and custom formats
+    if isinstance(dataset, list):  # If custom dataset format
+        whisper_dataset = CustomWhisperDataset(
+            dataset, model.dims.n_mels, dtype=dtype, device=model.device
+        )
+    else:  # If HuggingFace dataset
+        whisper_dataset = WhisperDataset(
+            dataset, "path", "sentence", model.dims.n_mels, dtype=dtype, device=model.device
+        )
+    
     data_loader = DataLoader(whisper_dataset, batch_size=batch_size)
 
     references = []
@@ -541,6 +668,20 @@ def parse_args():
             "during hyperparameter optimization. Word insertion weight."
         ),
     )
+
+     # Add arguments for custom dataset
+    parser.add_argument(
+        "--wav_scp",
+        required=False,
+        help="Path to wav.scp file with format '<utterance-id> <path to .wav file>'",
+    )
+    parser.add_argument(
+        "--text",
+        required=False,
+        help="Path to text file with format '<utterance-id> <transcription>'",
+    )
+
+
     levels = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
     parser.add_argument("--log-level", "-l", default="INFO", choices=levels)
     args = parser.parse_args()
@@ -727,6 +868,20 @@ def main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statem
     else:
         model = args.model
 
+
+    # Use custom dataset
+    logging.info("Loading custom dataset")
+    logging.info("- wav.scp: %s", args.wav_scp)
+    logging.info("- text: %s", args.text)
+    dataset = load_custom_dataset(
+        args.wav_scp,
+        args.text,
+        shuffle=args.dataset_shuffle,
+        n_samples=args.dataset_n
+    )
+
+    """
+    # Hugging Face Dataset
     logging.info("Loading dataset: %s", args.dataset)
     logging.info("- name: %s", args.dataset_name)
     logging.info("- split: %s", args.dataset_split)
@@ -765,6 +920,7 @@ def main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statem
         random.seed(42)  # Take random examples, but reproducible.
         indices = random.sample(range(dataset_len), args.dataset_n)
         dataset = dataset.select(indices)
+    """
 
     # Parse transcription and LM options:
     transcribe_options = parse_transcribe_options(args)
