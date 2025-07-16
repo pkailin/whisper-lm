@@ -47,14 +47,6 @@ import whisper
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
-
-from transformers import WhisperProcessor
-normalize_processor = WhisperProcessor.from_pretrained("openai/whisper-small")
-
-def normalize_text(text):
-    return normalize_processor.tokenizer._normalize(text)
-
-
 import whisper_decoder_with_lm  # pylint: disable=unused-import # noqa: E501,F401
 from whisper_evaluate import (
     compute_measures,
@@ -75,17 +67,22 @@ import librosa
 import random 
 import jiwer 
 
+from transformers import WhisperProcessor
+normalize_processor = WhisperProcessor.from_pretrained("openai/whisper-small")
+
+def normalize_text(text):
+    return normalize_processor.tokenizer._normalize(text)
 
 """
 from whisper_normalizer.english import EnglishTextNormalizer
 import re
 from num2words import num2words
 
+
 # Initialize the Whisper text normalizer
 normalizer = EnglishTextNormalizer()
 
 def normalize_text(text):
-
     # Step 1: Convert to lowercase
     text = text.lower()
 
@@ -135,7 +132,6 @@ def normalize_text(text):
     text = re.sub(r'\s+', ' ', text).strip()
 
     return text
-
 """
 
 class ASRDataset(Dataset):
@@ -514,6 +510,11 @@ def parse_args():
         ),
     )
     parser.add_argument(
+        "--prompt",
+        type=int,
+        default=0,
+    )
+    parser.add_argument(
         "--output_file",
         required=True, 
     )
@@ -524,7 +525,7 @@ def parse_args():
     return args
 
 
-def evaluate_with_transcribe(model, dataset, transcribe_options, output_file, normalizer=None):
+def evaluate_with_transcribe(model, dataset, transcribe_options, output_file, normalizer=None, prompt=0):
     """Evaluate a Whisper ASR model on a given dataset using `transcribe()`.
 
     Batching is not supported.
@@ -575,18 +576,58 @@ def evaluate_with_transcribe(model, dataset, transcribe_options, output_file, no
             print('Transcribe Options: ') 
             print(transcribe_options) 
 
-            predicted_text = model.transcribe(audio_path, **transcribe_options)["text"] 
-            
+            # Module mapping to full descriptions
+            module_descriptions = {
+                'ME': 'Magnetism and Electricity',
+                'MS': 'Mixtures and Solutions', 
+                'VB': 'Variables',
+                'WA': 'Water',
+                'EE': 'Energy and Electromagnetism',
+                'MX': 'Mixtures',
+                'SMP': 'Sun, Moon and Planets',
+                'SRL': 'Soil, Rocks and Landforms',
+                'LS': 'Living Systems'
+            }
+    
+            # Extract module from utterance_id
+            # Split by underscore and get the 5th element (index 4)
+            parts = utterance_id.split('_')
+    
+            if len(parts) < 6:
+                raise ValueError(f"Invalid utterance_id format: {utterance_id}")
+    
+            module = parts[4]  # Module is at index 4
+    
+            # Get the module description
+            if module not in module_descriptions:
+                raise ValueError(f"Unknown module: {module}")
+    
+            module_description = module_descriptions[module]
+    
+            # Create initial prompt
+            if prompt == 0: 
+                initial_prompt = f"children speech aged 8 to 11 years old about {module_description}"
+            elif prompt == 1: 
+                initial_prompt = f"children aged 8 to 11 talking about {module_description}"
+            elif prompt == 2: 
+                initial_prompt = f"children aged 8 to 11 speaking about {module_description}"
+            elif prompt == 3: 
+                initial_prompt = f"children, 8 to 11 years old, discussing {module_description}"
+            elif prompt == 4: 
+                initial_prompt = f"children speech: {module_description}, aged 8 to 11"
+
+            print("Prompt: " + initial_prompt)
+    
+            # Transcribe with the appropriate prompt
+            predicted_text = model.transcribe(audio_path, initial_prompt=initial_prompt)["text"]
+        
             # Apply normalizations
             label_text = normalize_text(label_text) 
             predicted_text = normalize_text(predicted_text) 
-            
+
             # Append for dataset-level calculation
             label_texts.append(label_text)
             predicted_texts.append(predicted_text)
-            
-            print(label_text)
-            print(predicted_text)
 
             results_file.write(f"{utterance_id}<DIV>{predicted_text}<DIV>{label_text}\n")
 
@@ -615,7 +656,7 @@ def evaluate_with_decode(
         A dataset containing audio data and corresponding ground truth
         text.
     transcribe_options : dict
-        ionfiguration options for the model's transcribe method, such as
+        Configuration options for the model's transcribe method, such as
         temperature settings, beam size, etc.
     normalizer : function, optional
         A function used to normalize text data. If None, normalization is
@@ -660,13 +701,11 @@ def evaluate_with_decode(
         for i, result in enumerate(results):
             label_text = texts[i]
             predicted_text = result.text
-            
-            """
+
             # Normalize the text
             if normalizer is not None:
                 label_text = normalizer(label_text).strip()
                 predicted_text = normalizer(predicted_text).strip()
-            """
 
             # Compute the sentence-level scores:
             measures = compute_measures(label_text, predicted_text)
@@ -694,21 +733,18 @@ def main():
     #model = whisper.load_model(args.model)
     model = whisper.load_model(args.model, device="cuda")
 
-    # Parse transcription and LM options:
-    transcribe_options = parse_transcribe_options(args)
-    print(transcribe_options)
+    #model = WhisperForConditionalGeneration.from_pretrained("balaji1312/whisper-small-myst-fullfinetune")
 
-    #transcribe_options = {}
+    #print(model.keys())           # should include 'dims' and 'model_state_dict'
+    #print(model['dims'])          # see model architecture
+    #print(list(model['model_state_dict'].keys())[:10])  # list of weight names
+    
+    # Parse transcription and LM options:
+    #transcribe_options = parse_transcribe_options(args)
+    transcribe_options = {}
     set_lm_options(args)
 
-    """
     # Load the text normalizer
-    if not args.skip_normalize:
-        normalizer = BasicTextNormalizer(remove_diacritics=not args.with_diacritics)
-    else:
-        normalizer = None
-    """
-
     normalizer = None
 
     # Evaluate the sentences:
@@ -733,9 +769,10 @@ def main():
         # Instantiate the ASRDataset
         logging.info("Loading dataset: ")
         dataset = ASRDataset()
-        
+        print("Using Prompt: " + str(args.prompt))
+
         sentence_measures, label_texts, predicted_texts = evaluate_with_transcribe(
-            model, dataset, transcribe_options, args.output_file, normalizer
+            model, dataset, transcribe_options, args.output_file, normalizer, args.prompt
         )
 
     # Print sentence-level scores

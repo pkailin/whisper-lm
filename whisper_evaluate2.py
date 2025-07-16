@@ -19,8 +19,8 @@ from tqdm import tqdm
 from transformers import set_seed
 from whisper.normalizers import BasicTextNormalizer
 
-import whisper_decoder_with_lm  # pylint: disable=unused-import # noqa: E501,F401
-from whisper_decoder_with_lm import LMOptions
+import whisper_decoder_with_lm2  # pylint: disable=unused-import # noqa: E501,F401
+from whisper_decoder_with_lm2 import LMOptions
 
 
 class WhisperDataset(Dataset):
@@ -422,6 +422,60 @@ def parse_args():
         ),
     )
 
+
+    parser.add_argument(
+        "--gram2_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram3_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram4_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram5_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram6_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram2_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram3_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram4_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram5_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram6_path",
+        type=str,
+        default=None,
+    )
+
+
+
     levels = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
     parser.add_argument("--log-level", "-l", default="INFO", choices=levels)
     args = parser.parse_args()
@@ -481,6 +535,19 @@ def set_lm_options(args):
         and args.lm_token_threshold is not None  # noqa: E501
     ):  # noqa: E501
         LMOptions().lm_token_threshold = args.lm_token_threshold
+
+    LMOptions().gram2_path = args.gram2_path
+    LMOptions().gram3_path = args.gram3_path
+    LMOptions().gram4_path = args.gram4_path
+    LMOptions().gram5_path = args.gram5_path
+    LMOptions().gram6_path = args.gram6_path
+    
+    LMOptions().gram2_lambda = args.gram2_lambda
+    LMOptions().gram3_lambda = args.gram3_lambda
+    LMOptions().gram4_lambda = args.gram4_lambda
+    LMOptions().gram5_lambda = args.gram5_lambda
+    LMOptions().gram6_lambda = args.gram6_lambda
+
     if hasattr(args, "lm_path") and args.lm_path is not None:
         LMOptions().lm_path = args.lm_path
         logging.info("LM path: %s", LMOptions().lm_path)
@@ -489,6 +556,19 @@ def set_lm_options(args):
         logging.info("LM eos: %s", LMOptions().lm_eos)
         logging.info("LM normalize: %s", LMOptions().lm_normalize)
         logging.info("LM token threshold: %s", LMOptions().lm_token_threshold)
+
+        logging.info("2 gram path: %s", LMOptions().gram2_path)
+        logging.info("3 gram path: %s", LMOptions().gram3_path)
+        logging.info("4 gram path: %s", LMOptions().gram4_path)
+        logging.info("5 gram path: %s", LMOptions().gram5_path)
+        logging.info("6 gram path: %s", LMOptions().gram6_path)
+
+        logging.info("2 gram lambda: %f", LMOptions().gram2_lambda)
+        logging.info("3 gram lambda: %f", LMOptions().gram3_lambda)
+        logging.info("4 gram lambda: %f", LMOptions().gram4_lambda)
+        logging.info("5 gram lambda: %f", LMOptions().gram5_lambda)
+        logging.info("6 gram lambda: %f", LMOptions().gram6_lambda)
+
     if hasattr(args, "llm_path") and args.llm_path is not None:
         LMOptions().llm_path = args.llm_path
         logging.info("LLM path: %s", LMOptions().llm_path)

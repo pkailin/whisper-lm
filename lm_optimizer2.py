@@ -47,7 +47,7 @@ from optuna.storages import JournalFileStorage, JournalStorage
 from torch.utils.data import DataLoader
 from whisper.normalizers import BasicTextNormalizer
 
-from whisper_evaluate import (
+from whisper_evaluate2 import (
     WhisperDataset,
     get_dtype_and_options,
     parse_none,
@@ -243,7 +243,7 @@ def objective_with_transcribe(  # pylint: disable=too-many-locals,too-many-argum
     # Set global LM options:
     if whisper_backend == "hack":
         logging.debug("Using the Whisper-hack")
-        from whisper_decoder_with_lm import (  # pylint: disable=import-outside-toplevel
+        from whisper_decoder_with_lm2 import (  # pylint: disable=import-outside-toplevel
             LMOptions,
         )
 
@@ -687,6 +687,58 @@ def parse_args():
     )
 
 
+    parser.add_argument(
+        "--gram2_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram3_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram4_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram5_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram6_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram2_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram3_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram4_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram5_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram6_path",
+        type=str,
+        default=None,
+    )
+    
+    
     levels = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
     parser.add_argument("--log-level", "-l", default="INFO", choices=levels)
     args = parser.parse_args()

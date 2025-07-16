@@ -1,3 +1,17 @@
+*.arpa 
+*.bin
+
+train_gpt/gpt_lora_comb1/
+train_gpt/gpt_lora_comb4/
+train_gpt/logs_lora_comb1/
+train_gpt/logs_lora_comb4/
+train_gpt/logs/
+train_gpt/logs_lora_babylm/
+train_gpt/results/
+train_gpt/babylm_lora_comb5/
+
+optuna_logs/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

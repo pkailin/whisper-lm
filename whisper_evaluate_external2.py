@@ -55,8 +55,8 @@ def normalize_text(text):
     return normalize_processor.tokenizer._normalize(text)
 
 
-import whisper_decoder_with_lm  # pylint: disable=unused-import # noqa: E501,F401
-from whisper_evaluate import (
+import whisper_decoder_with_lm2  # pylint: disable=unused-import # noqa: E501,F401
+from whisper_evaluate2 import (
     compute_measures,
     get_dtype_and_options,
     int_or_none,
@@ -516,6 +516,57 @@ def parse_args():
     parser.add_argument(
         "--output_file",
         required=True, 
+    )
+
+    parser.add_argument(
+        "--gram2_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram3_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram4_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram5_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram6_lambda",
+        type=float,
+        default=0.2,
+    )
+    parser.add_argument(
+        "--gram2_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram3_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram4_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram5_path",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--gram6_path",
+        type=str,
+        default=None,
     )
 
     levels = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")

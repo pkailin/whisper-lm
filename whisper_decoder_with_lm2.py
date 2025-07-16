@@ -108,6 +108,18 @@ class LMOptions:  # pylint: disable=too-few-public-methods
     # model scoring. This prevents premature evaluation on short sequences.
     lm_token_threshold: int = 4
 
+    gram2_path: str = None
+    gram3_path: str = None
+    gram4_path: str = None
+    gram5_path: str = None 
+    gram6_path: str = None
+    
+    gram2_lambda: float = 0.2 
+    gram3_lambda: float = 0.2 
+    gram4_lambda: float = 0.2 
+    gram5_lambda: float = 0.2 
+    gram6_lambda: float = 0.2
+
     def __new__(cls):
         """
         Create or return the LMOptions instance.
@@ -153,6 +165,16 @@ class BeamSearchDecoderWithLM(
         lm_beta: Optional[float] = None,
         lm_eos: Optional[str] = None,
         lm_normalize: Optional[bool] = True,
+        gram2_path: Optional[str] = None,
+        gram3_path: Optional[str] = None,
+        gram4_path: Optional[str] = None,
+        gram5_path: Optional[str] = None,
+        gram6_path: Optional[str] = None,
+        gram2_lambda: Optional[float] = None,
+        gram3_lambda: Optional[float] = None,
+        gram4_lambda: Optional[float] = None,
+        gram5_lambda: Optional[float] = None,
+        gram6_lambda: Optional[float] = None,
     ):  # pylint: disable=too-many-arguments
         """
         Initialize the beam search decoder with n-gram language model support.
@@ -197,6 +219,32 @@ class BeamSearchDecoderWithLM(
         self.lm_normalizer = BasicTextNormalizer()  # normalize for the KenLM
         self.finished_sequences = None
 
+        self.gram2_lambda = gram2_lambda or 0.0
+        self.gram3_lambda = gram3_lambda or 0.0
+        self.gram4_lambda = gram4_lambda or 0.0
+        self.gram5_lambda = gram5_lambda or 0.0
+        self.gram6_lambda = gram6_lambda or 0.0
+
+        self.gram2_model = (
+            kenlm.Model(gram2_path) if gram2_path is not None else None
+        )
+
+        self.gram3_model = (
+            kenlm.Model(gram3_path) if gram3_path is not None else None
+        )
+
+        self.gram4_model = (
+            kenlm.Model(gram4_path) if gram4_path is not None else None
+        )
+
+        self.gram5_model = (
+            kenlm.Model(gram5_path) if gram5_path is not None else None
+        )
+
+        self.gram6_model = (
+            kenlm.Model(gram6_path) if gram6_path is not None else None
+        )
+
     def lm_score_and_word_count(self, sequence) -> Tuple[float, int]:
         """Get n-gram language model score and word count for a sequence.
 
@@ -240,9 +288,19 @@ class BeamSearchDecoderWithLM(
         logging.debug("Word count: %d", word_count)
 
         # In KenLM, the most probable sequences have a higher score:
-        score = self.lm_model.score(normalized_text, bos=True, eos=eos)
-        logging.debug("LM score: %f", score)
+        #single_lm_score = self.lm_model.score(normalized_text, bos=True, eos=eos)
 
+        gram2_score = self.gram2_model.score(normalized_text, bos=True, eos=eos)
+        gram3_score = self.gram3_model.score(normalized_text, bos=True, eos=eos)
+        gram4_score = self.gram4_model.score(normalized_text, bos=True, eos=eos)
+        gram5_score = self.gram5_model.score(normalized_text, bos=True, eos=eos)
+        gram6_score = self.gram6_model.score(normalized_text, bos=True, eos=eos)
+        
+        score = (self.gram2_lambda*gram2_score) + (self.gram3_lambda*gram3_score) + (self.gram4_lambda*gram4_score) + (self.gram5_lambda*gram5_score) + (self.gram6_lambda*gram6_score)
+        logging.debug("LM score: %f", score)
+        #print("LM score:" + str(score))
+        #print("Single LM score:" + str(single_lm_score))
+        
         return score, word_count
 
     def update(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements # noqa: E501
@@ -497,12 +555,10 @@ class LLMSingleton:
             try:
                 with open(config_path, 'r') as f:
                     config = json.load(f)
-                    #return config.get('base_model_name_or_path', 'gpt2')
-                    return config.get('base_model_name_or_path', 'phonemetransformers/GPT2-85M-BPE-TXT')
+                    return config.get('base_model_name_or_path', 'gpt2')
             except Exception as e:
                 logging.warning(f"Could not read adapter config: {e}")
-        #return 'gpt2'  # Default fallback
-        return 'phonemetransformers/GPT2-85M-BPE-TXT'
+        return 'gpt2'  # Default fallback
 
     @classmethod
     def get_model(cls, model_name):
@@ -536,7 +592,6 @@ class LLMSingleton:
 
     @classmethod
     def get_tokenizer(cls, tokenizer_name):
-        tokenizer_name = 'phonemetransformers/GPT2-85M-BPE-TXT'
         with cls._tokenizers_lock:
             if tokenizer_name not in cls._tokenizers:
                 logging.debug("Loading tokenizer: %s", tokenizer_name)
@@ -869,6 +924,29 @@ def new_decoding_task_init(self, model: Whisper, options: DecodingOptions):
     print(options)
 
     if options.beam_size is not None:
+        logging.debug("Decoder: BeamSearchDecoderWithLM")
+        self.decoder = BeamSearchDecoderWithLM(
+            options.beam_size,
+            self.tokenizer,
+            self.inference,
+            options.patience,
+            lm_options.lm_path,
+            lm_options.lm_alpha,
+            lm_options.lm_beta,
+            lm_options.lm_eos,
+            lm_options.lm_normalize,
+            lm_options.gram2_path,
+            lm_options.gram3_path,
+            lm_options.gram4_path,
+            lm_options.gram5_path,
+            lm_options.gram6_path,
+            lm_options.gram2_lambda,
+            lm_options.gram3_lambda,
+            lm_options.gram4_lambda,
+            lm_options.gram5_lambda,
+            lm_options.gram6_lambda,
+        )
+        """
         if lm_options.llm_path is not None and lm_options.lm_path is not None:
             logging.debug("Decoder: BeamSearchDecoderWithLMAndLLM")
             self.decoder = BeamSearchDecoderWithLMAndLLM(
@@ -909,6 +987,7 @@ def new_decoding_task_init(self, model: Whisper, options: DecodingOptions):
                 lm_options.lm_eos,
                 lm_options.lm_normalize,
             )
+        """
 
 
 # Monkey patching the DecodingTask constructor:

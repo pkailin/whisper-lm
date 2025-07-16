@@ -1,0 +1,9 @@
+Scoring method: Cumulative beam search
+Best log likelihood: -483.879873
+Optimal lambda values:
+2-gram lambda: 0.000
+3-gram lambda: 0.000
+4-gram lambda: 0.000
+5-gram lambda: 0.000
+6-gram lambda: 1.000
+Lambda sum: 1.000000
