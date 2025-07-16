@@ -10,6 +10,9 @@ train_gpt/logs_lora_babylm/
 train_gpt/results/
 train_gpt/babylm_lora_comb5/
 
+corpus* 
+train_gpt/*.json
+
 optuna_logs/
 
 # Byte-compiled / optimized / DLL files
